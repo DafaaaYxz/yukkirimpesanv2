@@ -1,7 +1,6 @@
 
 const { Redis } = require('@upstash/redis');
 
-// Paste URL & TOKEN Upstash di sini
 const redis = new Redis({
   url: 'https://growing-firefly-50232.upstash.io',
   token: 'AcQ4AAIncDFlYjI2ZWM2ODhmOGQ0N2YwOTI1Njg5ZDA3ZjRjMDdhMHAxNTAyMzI',
@@ -9,6 +8,7 @@ const redis = new Redis({
 
 const User = {
   create: async (username, password) => {
+    if(!username || !password) return false;
     const exists = await redis.get(`user:${username}`);
     if (exists) return false;
     await redis.set(`user:${username}`, password);
