@@ -9,14 +9,28 @@ const redis = new Redis({
 const User = {
   create: async (username, password) => {
     if(!username || !password) return false;
-    const exists = await redis.get(`user:${username}`);
+    
+    // Hilangkan spasi di depan/belakang
+    const cleanUser = username.trim().toLowerCase();
+    const cleanPass = password.trim();
+
+    const exists = await redis.get(`user:${cleanUser}`);
     if (exists) return false;
-    await redis.set(`user:${username}`, password);
+
+    await redis.set(`user:${cleanUser}`, cleanPass);
     return true;
   },
+  
   login: async (username, password) => {
-    const savedPass = await redis.get(`user:${username}`);
-    return savedPass === password;
+    if(!username || !password) return false;
+
+    const cleanUser = username.trim().toLowerCase();
+    const cleanPass = password.trim();
+
+    const savedPass = await redis.get(`user:${cleanUser}`);
+    
+    // Konversi keduanya ke String untuk memastikan perbandingan valid
+    return String(savedPass) === String(cleanPass);
   }
 };
 
