@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-black text-white p-6">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex justify-between items-center mb-10">
+            <h1 class="text-2xl font-black">INBOX : @<%= user %></h1>
+            <a href="/logout" class="text-red-500 text-sm">Logout</a>
+        </div>
+
+        <div class="bg-blue-900/20 border border-blue-500 p-4 rounded-2xl mb-8">
+            <p class="text-sm">Bagikan link ini ke temanmu:</p>
+            <p class="font-mono text-blue-400">domain.com/u/<%= user %></p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <% if(messages.length == 0) { %>
+                <p class="text-gray-600">Belum ada pesan masuk...</p>
+            <% } %>
+            <% messages.forEach(m => { 
+                let data = JSON.parse(m);
+            %>
+            <div class="bg-[#111] border border-[#222] p-6 rounded-3xl">
+                <p class="text-xl font-medium mb-4 italic text-cyan-100">"<%= data.text %>"</p>
+                <p class="text-[10px] text-gray-600 uppercase tracking-widest"><%= new Date(data.time).toLocaleString() %></p>
+            </div>
+            <% }) %>
+        </div>
+    </div>
+</body>
+</html>
