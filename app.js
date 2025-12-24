@@ -7,7 +7,6 @@ const Message = require('./models/Message');
 
 const app = express();
 
-// PERBAIKAN DI SINI: Memberitahu Vercel lokasi folder views secara absolut
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
@@ -15,35 +14,51 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Route Dasar
 app.get('/', (req, res) => {
+    // Jika sudah login, langsung ke dashboard
+    if (req.cookies.user) return res.redirect('/dashboard');
     res.render('index');
 });
 
 app.post('/register', async (req, res) => {
     try {
-        const success = await User.create(req.body.username, req.body.password);
-        if (success) res.send('<script>alert("Berhasil! Silahkan Login."); window.location="/"</script>');
-        else res.send('Username sudah dipakai.');
+        const { username, password } = req.body;
+        const success = await User.create(username, password);
+        if (success) {
+            res.send('<script>alert("Registrasi Berhasil! Silahkan Login."); window.location="/"</script>');
+        } else {
+            res.send('<script>alert("Username sudah ada!"); window.location="/"</script>');
+        }
     } catch (err) {
-        res.status(500).send("Error Database: " + err.message);
+        res.status(500).send("Error: " + err.message);
     }
 });
 
 app.post('/login', async (req, res) => {
-    const valid = await User.login(req.body.username, req.body.password);
-    if (valid) {
-        res.cookie('user', req.body.username);
-        res.redirect('/dashboard');
-    } else {
-        res.send('Login Gagal. Username/Password salah.');
+    try {
+        const { username, password } = req.body;
+        const isValid = await User.login(username, password);
+
+        if (isValid) {
+            // Set cookie dengan maxAge 1 hari
+            res.cookie('user', username.trim().toLowerCase(), { maxAge: 86400000, httpOnly: true });
+            res.redirect('/dashboard');
+        } else {
+            res.send('<script>alert("Login Gagal! Username atau Password salah."); window.location="/"</script>');
+        }
+    } catch (err) {
+        res.status(500).send("Error: " + err.message);
     }
 });
 
 app.get('/dashboard', async (req, res) => {
     if (!req.cookies.user) return res.redirect('/');
-    const msgs = await Message.get(req.cookies.user);
-    res.render('dashboard', { user: req.cookies.user, messages: msgs });
+    try {
+        const msgs = await Message.get(req.cookies.user);
+        res.render('dashboard', { user: req.cookies.user, messages: msgs });
+    } catch (err) {
+        res.status(500).send("Error ambil pesan");
+    }
 });
 
 app.get('/u/:username', (req, res) => {
@@ -51,8 +66,12 @@ app.get('/u/:username', (req, res) => {
 });
 
 app.post('/send/:username', async (req, res) => {
-    await Message.send(req.params.username, req.body.text);
-    res.send('<center style="background:black; color:white; height:100vh; padding-top:50px; font-family:sans-serif;"><h1>Pesan Terkirim! 🚀</h1><a href="/u/'+req.params.username+'" style="color:cyan;">Kirim lagi</a></center>');
+    try {
+        await Message.send(req.params.username, req.body.text);
+        res.send('<center style="background:black;color:white;padding:50px;height:100vh;"><h1>Pesan Terkirim! 🚀</h1><a href="/u/'+req.params.username+'" style="color:cyan">Kirim lagi</a></center>');
+    } catch (err) {
+        res.send("Gagal mengirim pesan.");
+    }
 });
 
 app.get('/logout', (req, res) => {
