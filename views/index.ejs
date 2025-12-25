@@ -1,25 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- PENTING UNTUK MOBILE -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>body { background-color: #050505; color: white; }</style>
+    <style>body { background-color: #000; color: white; }</style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
-    <div class="w-full max-w-sm p-8 bg-[#111] border border-[#222] rounded-3xl">
-        <h1 class="text-3xl font-black mb-8 text-center tracking-tighter">NGL<span class="text-cyan-500">CLONE</span></h1>
+<body class="flex items-center justify-center min-h-screen px-4">
+    <div class="w-full max-w-sm p-6 bg-[#0a0a0a] border border-[#1a1a1a] rounded-[2.5rem] shadow-2xl">
+        <h1 class="text-4xl font-black mb-8 text-center tracking-tighter italic">NGL<span class="text-red-600">.</span></h1>
         
-        <form action="/login" method="POST" class="mb-6">
-            <input name="username" placeholder="Username" class="w-full mb-3 p-4 rounded-xl bg-[#1a1a1a] border border-[#333] outline-none focus:border-cyan-500">
-            <input name="password" type="password" placeholder="Password" class="w-full mb-3 p-4 rounded-xl bg-[#1a1a1a] border border-[#333] outline-none focus:border-cyan-500">
-            <button class="w-full py-4 bg-cyan-600 rounded-xl font-bold uppercase tracking-widest">Login</button>
+        <form action="/login" method="POST" class="space-y-3">
+            <input name="username" placeholder="Username" required class="w-full p-4 rounded-2xl bg-[#111] border border-[#222] focus:border-red-600 outline-none transition text-sm">
+            <input name="password" type="password" placeholder="Password" required class="w-full p-4 rounded-2xl bg-[#111] border border-[#222] focus:border-red-600 outline-none transition text-sm">
+            <button class="w-full py-4 bg-red-600 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-700">Masuk</button>
         </form>
 
-        <div class="border-t border-[#222] pt-6 text-center">
-            <p class="text-sm text-gray-500 mb-4">Belum punya akun?</p>
-            <form action="/register" method="POST">
-                <input name="username" placeholder="New Username" class="w-full mb-3 p-4 rounded-xl bg-[#1a1a1a] border border-[#333]">
-                <input name="password" type="password" placeholder="New Password" class="w-full mb-3 p-4 rounded-xl bg-[#1a1a1a] border border-[#333]">
-                <button class="w-full py-4 bg-white text-black rounded-xl font-bold uppercase tracking-widest text-xs">Buat Akun Baru</button>
+        <div class="mt-10 pt-6 border-t border-[#111]">
+            <p class="text-[10px] text-gray-500 text-center uppercase tracking-widest mb-4">Belum punya akun?</p>
+            <form action="/register" method="POST" class="space-y-3">
+                <input name="username" placeholder="Username Baru" required class="w-full p-4 rounded-2xl bg-[#111] border border-[#222] text-sm outline-none">
+                <input name="password" type="password" placeholder="Password Baru" required class="w-full p-4 rounded-2xl bg-[#111] border border-[#222] text-sm outline-none">
+                <button class="w-full py-4 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-gray-200">Daftar Akun</button>
             </form>
         </div>
     </div>
