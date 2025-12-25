@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Library untuk convert HTML ke Gambar -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
     <title>Inbox - NGL</title>
 </head>
 <body class="bg-black text-white p-4 md:p-10 font-sans">
@@ -14,7 +16,7 @@
             <a href="/logout" class="text-xs font-bold text-gray-500 border border-gray-800 px-4 py-2 rounded-full uppercase">Keluar</a>
         </div>
 
-        <!-- FITUR BARU: Copy Link Box -->
+        <!-- Copy Link Box -->
         <div class="bg-[#0a0a0a] border border-[#1a1a1a] p-6 rounded-[2rem] mb-8 text-center">
             <p class="text-[10px] text-gray-500 uppercase tracking-widest mb-3">Link Profile Kamu</p>
             <div class="flex flex-col gap-3">
@@ -28,42 +30,92 @@
         </div>
 
         <!-- List Pesan -->
-        <div class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
             <% if(messages.length == 0) { %>
-                <div class="text-center py-20">
-                    <div class="text-4xl mb-4">📩</div>
-                    <p class="text-gray-600 text-sm">Belum ada pesan anonim...</p>
+                <div class="col-span-2 text-center py-20">
+                    <p class="text-gray-600 text-sm">Belum ada pesan...</p>
                 </div>
             <% } %>
 
-            <% messages.forEach(m => { %>
-            <div class="bg-[#0d0d0d] border border-[#1a1a1a] p-6 rounded-[2rem] relative group">
-                <div class="flex justify-between items-center mb-4">
-                    <span class="text-[9px] text-gray-600 font-bold uppercase tracking-tighter"><%= new Date(m.time).toLocaleString() %></span>
-                    
-                    <!-- FITUR BARU: Tombol Hapus -->
-                    <form action="/delete-message" method="POST" onsubmit="return confirm('Hapus pesan ini?')">
+            <% messages.forEach((m, index) => { %>
+            <!-- Klik kartu untuk buka preview -->
+            <div onclick="openPreview('<%= m.text.replace(/'/g, "\\'") %>')" class="cursor-pointer bg-[#0d0d0d] border border-[#1a1a1a] p-5 rounded-[1.5rem] relative active:scale-95 transition">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="w-2 h-2 bg-red-600 rounded-full"></span>
+                    <form action="/delete-message" method="POST" onsubmit="event.stopPropagation(); return confirm('Hapus?')">
                         <input type="hidden" name="msgRaw" value='<%= JSON.stringify(m) %>'>
-                        <button class="text-gray-800 hover:text-red-600 transition text-[10px] font-bold uppercase tracking-widest">Hapus</button>
+                        <button class="text-[8px] text-gray-800 font-bold uppercase">Hapus</button>
                     </form>
                 </div>
-                <p class="text-lg font-semibold leading-snug">"<%= m.text %>"</p>
+                <p class="text-sm font-medium line-clamp-3">"<%= m.text %>"</p>
             </div>
             <% }) %>
         </div>
     </div>
 
+    <!-- MODAL PREVIEW (ALA INSTAGRAM STORY) -->
+    <div id="modalPreview" class="hidden fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-6">
+        <button onclick="closePreview()" class="absolute top-10 right-10 text-white font-bold text-xl">&times;</button>
+        
+        <!-- Area yang akan di-download -->
+        <div id="captureArea" class="w-full max-w-[350px] aspect-[9/16] bg-red-600 rounded-[3rem] p-10 flex flex-col items-center justify-center text-center shadow-2xl relative overflow-hidden">
+            <!-- Dekorasi background -->
+            <div class="absolute top-10 left-10 text-white/20 text-6xl font-black">“</div>
+            
+            <div class="bg-white text-black p-8 rounded-[2rem] shadow-xl w-full">
+                <p class="text-[10px] text-gray-400 uppercase font-black tracking-widest mb-4">kirim pesan anonim!</p>
+                <p id="previewText" class="text-xl font-bold leading-tight text-black">"Contoh Pesan"</p>
+            </div>
+
+            <div class="mt-10 text-white">
+                <p class="text-xs font-black tracking-tighter italic">NGL.LINK</p>
+                <p class="text-[8px] uppercase tracking-[0.3em] opacity-50">yukkirimpesan.vercel.app</p>
+            </div>
+        </div>
+
+        <!-- Tombol Download -->
+        <button onclick="downloadImage()" class="mt-8 bg-white text-black px-10 py-4 rounded-full font-black uppercase text-xs tracking-widest hover:bg-red-500 hover:text-white transition">
+            Download Gambar & Simpan
+        </button>
+        <p class="mt-4 text-gray-500 text-[10px]">Siap untuk dibagikan ke Instagram Story!</p>
+    </div>
+
     <script>
+        function openPreview(text) {
+            document.getElementById('previewText').innerText = `"${text}"`;
+            document.getElementById('modalPreview').classList.remove('hidden');
+        }
+
+        function closePreview() {
+            document.getElementById('modalPreview').classList.add('hidden');
+        }
+
+        function downloadImage() {
+            const node = document.getElementById('captureArea');
+            const btn = event.target;
+            btn.innerText = "MENGOLAH...";
+
+            htmlToImage.toPng(node)
+                .then(function (dataUrl) {
+                    const link = document.createElement('a');
+                    link.download = `NGL-Pesan-${Date.now()}.png`;
+                    link.href = dataUrl;
+                    link.click();
+                    btn.innerText = "DOWNLOAD BERHASIL!";
+                    setTimeout(() => btn.innerText = "DOWNLOAD GAMBAR", 2000);
+                })
+                .catch(function (error) {
+                    console.error('Oops, something went wrong!', error);
+                    alert("Gagal mendownload gambar");
+                });
+        }
+
         function copyLink() {
             const link = document.getElementById('linkText').innerText.trim();
             navigator.clipboard.writeText(link);
             const btn = document.getElementById('btnCopy');
             btn.innerText = "TERSALIN! ✅";
-            btn.classList.add('bg-green-500', 'text-white');
-            setTimeout(() => {
-                btn.innerText = "SALIN LINK";
-                btn.classList.remove('bg-green-500', 'text-white');
-            }, 2000);
+            setTimeout(() => btn.innerText = "SALIN LINK", 2000);
         }
     </script>
 </body>
